@@ -186,6 +186,11 @@ export class TaskService {
 
       // 4. Business Guard: Internal team members cannot change title/description
       if (user.role === 'INTERNAL') {
+        if (existing.assignedToId !== user.id) {
+          throw new HTTPException(403, {
+            message: 'Anda hanya diperbolehkan mengubah tugas yang ditugaskan kepada Anda sendiri.',
+          });
+        }
         if ((data.title && data.title !== existing.title) || (data.description && data.description !== existing.description)) {
           throw new HTTPException(403, {
             message: 'Internal team members are not authorized to update task title or description.',

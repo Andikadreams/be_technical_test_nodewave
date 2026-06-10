@@ -37,7 +37,7 @@ authController.post('/register', async (c) => {
         password: hashedPassword,
         name,
         role,
-        department: role === 'CLIENT' ? null : department,
+        department: role === 'PM' ? 'PRODUCT' : (role === 'CLIENT' ? null : department),
       },
     });
 

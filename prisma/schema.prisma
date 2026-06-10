@@ -1,0 +1,72 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  PM
+  INTERNAL
+  CLIENT
+}
+
+enum Department {
+  PRODUCT
+  UIUX
+  FRONTEND
+  BACKEND
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+model User {
+  id         String      @id @default(uuid())
+  email      String      @unique
+  password   String
+  name       String
+  role       Role
+  department Department?
+  tasks      Task[]
+  auditLogs  AuditLog[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model Task {
+  id              String      @id @default(uuid())
+  title           String
+  description     String
+  status          TaskStatus  @default(TODO)
+  isClientVisible Boolean     @default(false)
+  assignedToId    String?
+  assignedTo      User?       @relation(fields: [assignedToId], references: [id])
+  version         Int         @default(1)
+  isDeleted       Boolean     @default(false)
+  
+  // Self-referencing many-to-many relation for dependencies
+  dependencies    Task[]      @relation("TaskDependencies")
+  dependents      Task[]      @relation("TaskDependencies")
+
+  auditLogs       AuditLog[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  taskId        String
+  task          Task     @relation(fields: [taskId], references: [id])
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  changedColumn String
+  oldValue      String?
+  newValue      String?
+  createdAt     DateTime @default(now())
+}
